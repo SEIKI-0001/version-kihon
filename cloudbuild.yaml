@@ -1,1 +1,59 @@
+substitutions:
+  _LOCATION: asia-northeast1
+  _REPOSITORY: version-kihon
+  _IMAGE_NAME: version-kihon
+  _TAG: $SHORT_SHA
+  _SERVICE_NAME: version-final-kihon
+  _REGION: asia-northeast1
 
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+steps:
+  - name: "gcr.io/kaniko-project/executor:latest"
+    args:
+      - --destination=${_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE_NAME}:${_TAG}
+      - --dockerfile=./Dockerfile
+      - --context=.
+      - --cache=true
+      - --cache-ttl=8h
+      - --compressed-caching=false
+      - --cache-copy-layers=true
+    id: "Build & Push"
+
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: "gcloud"
+    args:
+      - run
+      - deploy
+      - ${_SERVICE_NAME}
+      - --image
+      - ${_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE_NAME}:${_TAG}
+      - --region
+      - ${_REGION}
+      - --platform
+      - managed
+      - --allow-unauthenticated
+      - --memory
+      - "2Gi"
+      - --concurrency
+      - "10"
+      - --set-env-vars
+      - >
+        EXAM_TYPE=kihon,
+        USER_TZ=Asia/Tokyo,
+        TZ_OFFSET=+09:00,
+        BOOK_DATA_BUCKET=study-book-data,
+        TOKEN_BUCKET=gpts-oauth-tokens,
+        USER_SHEET_MAP_BUCKET=user-sheet-mapping,
+        USER_SHEET_MAP_BLOB=mapping.json,
+        BACKUP_BUCKET=gpts-plans-backup,
+        ACRONYM_BUCKET=maru-acronyms,
+        ACRONYM_PATH=acronyms/itpass_core.json
+      - --update-secrets
+      - >
+        OAUTH_CLIENT_ID=oauth-client-id:latest,
+        OAUTH_CLIENT_SECRET=oauth-client-secret:latest,
+        APP_SECRET=app-secret:latest,
+        SERVICE_API_KEY=service-api-key:latest
+    id: "Deploy"
