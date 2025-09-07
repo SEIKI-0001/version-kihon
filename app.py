@@ -1,6 +1,6 @@
 # app.py
 # ============================================
-# Study Plan API (itパス / 基本情報 切替対応, Calendar省略版)
+# Study Plan API (version-kihon / Calendar省略版)
 # ============================================
 
 # ===== Standard Library =====
@@ -35,22 +35,22 @@ BASE_URL = os.getenv("BASE_URL")  # e.g. https://<service>.a.run.app
 OAUTH_CLIENT_ID = os.getenv("OAUTH_CLIENT_ID")
 OAUTH_CLIENT_SECRET = os.getenv("OAUTH_CLIENT_SECRET")
 APP_SECRET = os.getenv("APP_SECRET", "")
-TOKEN_BUCKET = os.getenv("TOKEN_BUCKET", "gpts-oauth-tokens")
-USER_SHEET_MAP_BUCKET = os.getenv("USER_SHEET_MAP_BUCKET", "user-sheet-mapping")
+
+# --- kihon 専用バケット（デフォルトを kihon バケットに）
+TOKEN_BUCKET = os.getenv("TOKEN_BUCKET", "token_bucket_kihon")
+USER_SHEET_MAP_BUCKET = os.getenv("USER_SHEET_MAP_BUCKET", "user_sheet_map_bucket_kihon")
 USER_SHEET_MAP_BLOB = os.getenv("USER_SHEET_MAP_BLOB", "mapping.json")
-BACKUP_BUCKET = os.getenv("BACKUP_BUCKET", "gpts-plans-backup")
+BACKUP_BUCKET = os.getenv("BACKUP_BUCKET", "backup_bucket_kihon")
 SERVICE_API_KEY = os.getenv("SERVICE_API_KEY", "")
-BOOK_DATA_BUCKET = os.getenv("BOOK_DATA_BUCKET", "study-book-data")
+BOOK_DATA_BUCKET = os.getenv("BOOK_DATA_BUCKET", "book_data_bucket_kihon")
 
-# ← 追加: 試験種別とGCSパスの切替（itpass / kihon）
-EXAM_TYPE = os.getenv("EXAM_TYPE", "itpass")  # "itpass" or "kihon"
-BOOK_DATA_PREFIX = os.getenv("BOOK_DATA_PREFIX", "")  # 例: "kihon" / "itpass" / ""（無指定は直下）
+# ← 試験種別（固定で kihon を既定）
+EXAM_TYPE = os.getenv("EXAM_TYPE", "kihon")  # "kihon" or "itpass"
+BOOK_DATA_PREFIX = os.getenv("BOOK_DATA_PREFIX", "")  # kihon は別バケットなので通常は空でOK
 
-ACRONYM_BUCKET = os.getenv("ACRONYM_BUCKET", "maru-acronyms")
-ACRONYM_PATH = os.getenv(
-    "ACRONYM_PATH",
-    "acronyms/kihon_core.json" if EXAM_TYPE == "kihon" else "acronyms/itpass_core.json"
-)
+# 略語データ（kihon 既定）
+ACRONYM_BUCKET = os.getenv("ACRONYM_BUCKET", "acronym_bucket_kihon")
+ACRONYM_PATH = os.getenv("ACRONYM_PATH", "acronyms/kihon_core.json")
 ACRONYM_REFRESH_SEC = int(os.getenv("ACRONYM_REFRESH_SEC", "3600"))
 
 _AC_CACHE = {"terms": {}, "last": 0, "etag": None}
