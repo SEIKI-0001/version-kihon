@@ -2,14 +2,15 @@ substitutions:
   _LOCATION: asia-northeast1
   _REPOSITORY: version-kihon
   _IMAGE_NAME: version-kihon
-  _TAG: $SHORT_SHA
-  _SERVICE_NAME: version-final-kihon
+  _TAG: $SHORT_SHA         # ← $COMMIT_SHA で空になるケース対策
+  _SERVICE_NAME: version-kihon
   _REGION: asia-northeast1
 
 options:
   logging: CLOUD_LOGGING_ONLY
 
 steps:
+  # ====== Step 1: Build & Push ======
   - name: "gcr.io/kaniko-project/executor:latest"
     args:
       - --destination=${_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE_NAME}:${_TAG}
@@ -21,6 +22,7 @@ steps:
       - --cache-copy-layers=true
     id: "Build & Push"
 
+  # ====== Step 2: Deploy to Cloud Run ======
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     entrypoint: "gcloud"
     args:
@@ -35,25 +37,7 @@ steps:
       - managed
       - --allow-unauthenticated
       - --memory
-      - "2Gi"
+      - "2Gi"           # ← クォートで囲む
       - --concurrency
-      - "10"
-      - --set-env-vars
-      - >
-        EXAM_TYPE=kihon,
-        USER_TZ=Asia/Tokyo,
-        TZ_OFFSET=+09:00,
-        BOOK_DATA_BUCKET=study-book-data,
-        TOKEN_BUCKET=gpts-oauth-tokens,
-        USER_SHEET_MAP_BUCKET=user-sheet-mapping,
-        USER_SHEET_MAP_BLOB=mapping.json,
-        BACKUP_BUCKET=gpts-plans-backup,
-        ACRONYM_BUCKET=maru-acronyms,
-        ACRONYM_PATH=acronyms/itpass_core.json
-      - --update-secrets
-      - >
-        OAUTH_CLIENT_ID=oauth-client-id:latest,
-        OAUTH_CLIENT_SECRET=oauth-client-secret:latest,
-        APP_SECRET=app-secret:latest,
-        SERVICE_API_KEY=service-api-key:latest
+      - "10"            # ← クォート（"1" でもOKだが10推奨）
     id: "Deploy"
