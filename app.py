@@ -1,8 +1,3 @@
-# app.py
-# ============================================
-# Study Plan API (version-kihon / Calendar省略版)
-# ============================================
-
 # ===== Standard Library =====
 import base64
 import hashlib
